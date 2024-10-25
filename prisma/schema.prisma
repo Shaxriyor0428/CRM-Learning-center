@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Models
+
+model Lid {
+  id                Int        @id @default(autoincrement())
+  first_name        String
+  last_name         String
+  phone_number      String
+  test_date         String
+  trial_lesson_date Int
+  trial_lesson_time String
+  LidStatus         LidStatus @relation(fields: [lid_statusId], references: [id])
+  lid_statusId      Int
+
+  ReasonLid       ReasonLid @relation(fields: [cancel_reasonId], references: [id])
+  cancel_reasonId Int
+
+  Student Students[]
+
+  Group                Group @relation(fields: [trial_lesson_groupId], references: [id])
+  trial_lesson_groupId Int
+  // targetId String
+  Stage                Stage @relation(fields: [stageId], references: [id])
+  stageId              Int
+
+  @@map("lid")
+}
+
+model LidStatus {
+  id     Int    @id @default(autoincrement())
+  status String
+  lid    Lid[]
+
+  @@map("lid_status")
+}
+
+model ReasonLid {
+  id         Int    @id @default(autoincrement())
+  reason_lid String
+  Lid        Lid[]
+
+  @@map("reason_lid")
+}
+
+model Staff {
+  id                   Int      @id @default(autoincrement())
+  first_name           String
+  last_name            String
+  phone_number         String
+  login                String   @unique
+  hashed_password      String
+  is_active            Boolean? @default(false)
+  hashed_refresh_token String?
+
+  roles      StaffRole[]
+  GroupStaff GroupStaff[]
+
+  @@map("staff")
+}
+
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  staffs StaffRole[]
+
+  @@map("role")
+}
+
+model StaffRole {
+  staff   Staff @relation(fields: [staffId], references: [id])
+  staffId Int
+
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  @@id([staffId, roleId])
+  @@map("staff_role")
+}
+
+model Group {
+  id                Int    @id @default(autoincrement())
+  group_name        String @unique
+  lesson_start_time String
+  lesson_continious String
+  lesson_week_day   Int[]
+  Stage             Stage @relation(fields: [stageId], references: [id])
+  stageId     Int
+
+  room_number  Int
+  room_floor   Int
+  Branch       Branch         @relation(fields: [branchId], references: [id])
+  branchId     Int
+  lesson_quant Int
+  is_active    Boolean        @default(false)
+  GroupStaff   GroupStaff[]
+  StudentGroup StudentGroup[]
+  Lid          Lid[]
+  Lesson       Lesson[]
+
+  @@map("group")
+}
+
+model GroupStaff {
+  staff   Staff @relation(fields: [staffId], references: [id])
+  staffId Int
+
+  group   Group @relation(fields: [groupId], references: [id])
+  groupId Int
+
+  @@id([staffId, groupId])
+  @@map("group_staff")
+}
+
+model Branch {
+  id          Int     @id @default(autoincrement())
+  name        String
+  address     String
+  call_number String
+  Group       Group[]
+
+  @@map("branch")
+}
+
+model Stage {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Group Group[]
+  Lid   Lid[]
+
+  @@map("stage")
+}
+
+model Payment {
+  id                Int      @id @default(autoincrement())
+  Student           Students @relation(fields: [studentId], references: [id])
+  studentId         Int
+  payment_last_date String
+  payment_date      String
+  price             Int
+  is_paid           Boolean
+  total_price       Int
+
+  @@map("payment")
+}
+
+model Students {
+  id            Int             @id @default(autoincrement())
+  Lid           Lid             @relation(fields: [lidId], references: [id])
+  lidId         Int
+  first_name    String
+  last_name     String
+  phone_number  String
+  birth_day     String
+  gender        String
+  Payment       Payment[]
+  StudentGroup  StudentGroup[]
+  StudentLesson StudentLesson[]
+
+  @@map("students")
+}
+
+model StudentGroup {
+  Student   Students @relation(fields: [studentId], references: [id])
+  studentId Int
+  Group     Group    @relation(fields: [groupId], references: [id])
+  groupId   Int
+
+  @@id([studentId, groupId])
+  @@map("student_group")
+}
+
+model Lesson {
+  id            Int             @id @default(autoincrement())
+  lesson_theme  String
+  lesson_number Int
+  lesson_date   String
+  Group         Group           @relation(fields: [groupId], references: [id])
+  groupId       Int
+  StudentLesson StudentLesson[]
+
+  @@map("lesson")
+}
+
+model StudentLesson {
+  lessonId  Int
+  studentId Int
+  is_there  Boolean
+  reason    String
+  be_paid   Boolean
+
+  Lesson   Lesson   @relation(fields: [lessonId], references: [id])
+  Students Students @relation(fields: [studentId], references: [id])
+
+  @@id([lessonId, studentId])
+  @@map("student_lesson")
+}

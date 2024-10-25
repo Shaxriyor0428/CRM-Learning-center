@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "lid" ADD COLUMN     "stageId" INTEGER NOT NULL DEFAULT 1;
+
+-- AddForeignKey
+ALTER TABLE "lid" ADD CONSTRAINT "lid_stageId_fkey" FOREIGN KEY ("stageId") REFERENCES "stage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
