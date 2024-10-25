@@ -200,9 +200,9 @@ model Lesson {
 model StudentLesson {
   lessonId  Int
   studentId Int
-  is_there  Boolean
+  is_there  Boolean @default(false)
   reason    String
-  be_paid   Boolean
+  be_paid   Boolean @default(false)
 
   Lesson   Lesson   @relation(fields: [lessonId], references: [id])
   Students Students @relation(fields: [studentId], references: [id])
